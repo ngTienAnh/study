@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo dõi tiến độ học tập</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Header -->
+        <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+            <div class="flex items-center gap-3 mb-8">
+                <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <h1 class="text-3xl font-bold text-gray-800">Theo dõi tiến độ học tập</h1>
+            </div>
+
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        <p class="text-sm opacity-90">Tiến độ hoàn thành</p>
+                    </div>
+                    <p class="text-4xl font-bold" id="completionPercent">0%</p>
+                    <p class="text-sm mt-2 opacity-90" id="completionText">0 / 400 bài</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                        </svg>
+                        <p class="text-sm opacity-90">Thời gian còn lại</p>
+                    </div>
+                    <p class="text-4xl font-bold" id="daysRemaining">0</p>
+                    <p class="text-sm mt-2 opacity-90">ngày đến deadline</p>
+                </div>
+
+                <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-6 text-white">
+                    <div class="flex items-center gap-2 mb-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                        </svg>
+                        <p class="text-sm opacity-90">Cần học mỗi ngày</p>
+                    </div>
+                    <p class="text-4xl font-bold" id="requiredDaily">0</p>
+                    <p class="text-sm mt-2 opacity-90">bài/ngày</p>
+                </div>
+            </div>
+
+            <!-- Average Display -->
+            <div id="averageDisplay" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 hidden">
+                <div class="flex items-center gap-2 text-blue-800">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                    </svg>
+                    <p class="font-semibold">
+                        Trung bình 7 ngày gần nhất: <span class="text-2xl" id="averageValue">0</span> bài/ngày
+                    </p>
+                </div>
+            </div>
+
+            <!-- Input Form -->
+            <div class="bg-gray-50 rounded-xl p-6 mb-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Ghi nhận học tập</h2>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <input
+                        type="date"
+                        id="dateInput"
+                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                    <input
+                        type="number"
+                        id="lessonsInput"
+                        placeholder="Số bài đã học"
+                        class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        min="1"
+                    />
+                    <button
+                        onclick="addRecord()"
+                        class="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+                    >
+                        Thêm
+                    </button>
+                </div>
+            </div>
+
+            <!-- History -->
+            <div class="bg-gray-50 rounded-xl p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Lịch sử học tập</h2>
+                <div id="recordsList" class="space-y-2 max-h-96 overflow-y-auto">
+                    <p class="text-gray-500 text-center py-8">Chưa có bản ghi nào</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="bg-white rounded-xl shadow-lg p-6">
+            <h3 class="font-semibold text-gray-800 mb-2">Thông tin:</h3>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>• Tổng số bài cần học: 400 bài</li>
+                <li>• Deadline: 1/2/2026</li>
+                <li>• Còn lại: <span id="remainingLessons">400</span> bài</li>
+                <li>• Tỷ lệ hoàn thành: <span id="infoPercent">0</span>%</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_LESSONS = 400;
+        const DEADLINE = new Date('2026-02-01');
+
+        // Set today's date as default
+        document.getElementById('dateInput').valueAsDate = new Date();
+
+        // Load records from localStorage
+        function loadRecords() {
+            const records = JSON.parse(localStorage.getItem('studyRecords') || '[]');
+            return records.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+
+        // Save records to localStorage
+        function saveRecords(records) {
+            localStorage.setItem('studyRecords', JSON.stringify(records));
+        }
+
+        // Add new record
+        function addRecord() {
+            const date = document.getElementById('dateInput').value;
+            const lessons = parseInt(document.getElementById('lessonsInput').value);
+
+            if (!date || !lessons || lessons <= 0) {
+                alert('Vui lòng nhập đầy đủ thông tin hợp lệ');
+                return;
+            }
+
+            const records = loadRecords();
+            const existingIndex = records.findIndex(r => r.date === date);
+
+            if (existingIndex >= 0) {
+                if (confirm('Ngày này đã có bản ghi. Bạn có muốn cập nhật?')) {
+                    records[existingIndex].lessons = lessons;
+                } else {
+                    return;
+                }
+            } else {
+                records.push({ date, lessons });
+            }
+
+            saveRecords(records);
+            document.getElementById('lessonsInput').value = '';
+            updateUI();
+            alert('Đã lưu tiến độ học tập!');
+        }
+
+        // Delete record
+        function deleteRecord(date) {
+            if (confirm('Bạn có chắc muốn xóa bản ghi này?')) {
+                const records = loadRecords().filter(r => r.date !== date);
+                saveRecords(records);
+                updateUI();
+            }
+        }
+
+        // Update UI
+        function updateUI() {
+            const records = loadRecords();
+            const totalCompleted = records.reduce((sum, r) => sum + r.lessons, 0);
+            const completionPercent = ((totalCompleted / TOTAL_LESSONS) * 100).toFixed(1);
+            const remainingLessons = TOTAL_LESSONS - totalCompleted;
+
+            const today = new Date();
+            const daysRemaining = Math.ceil((DEADLINE - today) / (1000 * 60 * 60 * 24));
+            const requiredDaily = remainingLessons > 0 && daysRemaining > 0
+                ? (remainingLessons / daysRemaining).toFixed(1)
+                : 0;
+
+            // Update statistics
+            document.getElementById('completionPercent').textContent = completionPercent + '%';
+            document.getElementById('completionText').textContent = `${totalCompleted} / ${TOTAL_LESSONS} bài`;
+            document.getElementById('daysRemaining').textContent = daysRemaining;
+            document.getElementById('requiredDaily').textContent = requiredDaily;
+            document.getElementById('remainingLessons').textContent = remainingLessons;
+            document.getElementById('infoPercent').textContent = completionPercent;
+
+            // Calculate 7-day average
+            const last7Days = records.slice(0, 7);
+            if (last7Days.length > 0) {
+                const average = (last7Days.reduce((sum, r) => sum + r.lessons, 0) / last7Days.length).toFixed(1);
+                document.getElementById('averageValue').textContent = average;
+                document.getElementById('averageDisplay').classList.remove('hidden');
+            } else {
+                document.getElementById('averageDisplay').classList.add('hidden');
+            }
+
+            // Update records list
+            const recordsList = document.getElementById('recordsList');
+            if (records.length === 0) {
+                recordsList.innerHTML = '<p class="text-gray-500 text-center py-8">Chưa có bản ghi nào</p>';
+            } else {
+                recordsList.innerHTML = records.map(record => {
+                    const date = new Date(record.date);
+                    return `
+                        <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 fade-in">
+                            <div class="flex items-center gap-4">
+                                <div class="text-center">
+                                    <p class="text-2xl font-bold text-indigo-600">${date.getDate()}</p>
+                                    <p class="text-xs text-gray-500">Tháng ${date.getMonth() + 1}</p>
+                                </div>
+                                <div>
+                                    <p class="font-semibold text-gray-800">
+                                        ${date.toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+                                    </p>
+                                    <p class="text-sm text-gray-600">
+                                        Đã học: <span class="font-semibold text-indigo-600">${record.lessons}</span> bài
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                onclick="deleteRecord('${record.date}')"
+                                class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            >
+                                Xóa
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Initialize
+        updateUI();
+    </script>
+</body>
+</html>
