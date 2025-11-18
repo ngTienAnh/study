@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo dõi tiến độ học tập</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+<div class="max-w-4xl mx-auto p-6">
+    <!-- Subject Config -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="font-semibold text-gray-800 text-lg">Cấu hình môn học</h3>
+            <button
+                onclick="addSubject()"
+                class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700 transition-colors"
+            >
+                + Thêm môn
+            </button>
+        </div>
+        <div class="text-xs text-gray-500 mb-3">
+            Chỉnh tên môn, tổng số bài và ngày kết thúc. Dữ liệu mỗi môn sẽ được lưu riêng.
+        </div>
+        <div id="subjectsConfig" class="space-y-3">
+            <!-- Subject rows render bằng JS -->
+        </div>
+    </div>
+
+    <!-- Header -->
+    <div class="bg-white rounded-2xl shadow-xl p-8 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div class="flex items-center gap-3">
+                <svg class="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                </svg>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Theo dõi tiến độ học tập</h1>
+                    <p class="text-sm text-gray-500 mt-1">
+                        Quản lý nhiều môn học, mỗi môn có tổng số bài & deadline riêng
+                    </p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <label for="subjectSelect" class="text-sm font-medium text-gray-700">Môn học:</label>
+                <select
+                    id="subjectSelect"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent bg-white"
+                >
+                    <!-- Options sẽ được fill bằng JavaScript -->
+                </select>
+            </div>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <p class="text-sm opacity-90">Tiến độ hoàn thành</p>
+                </div>
+                <p class="text-4xl font-bold" id="completionPercent">0%</p>
+                <p class="text-sm mt-2 opacity-90" id="completionText">0 / 0 bài</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-6 text-white">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    <p class="text-sm opacity-90">Thời gian còn lại</p>
+                </div>
+                <p class="text-4xl font-bold" id="daysRemaining">0</p>
+                <p class="text-sm mt-2 opacity-90">ngày đến deadline</p>
+            </div>
+
+            <div class="bg-gradient-to-br from-orange-500 to-red-600 rounded-xl p-6 text-white">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                    </svg>
+                    <p class="text-sm opacity-90">Cần học mỗi ngày</p>
+                </div>
+                <p class="text-4xl font-bold" id="requiredDaily">0</p>
+                <p class="text-sm mt-2 opacity-90">bài/ngày</p>
+            </div>
+        </div>
+
+        <!-- Average Display -->
+        <div id="averageDisplay" class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 hidden">
+            <div class="flex items-center gap-2 text-blue-800">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                </svg>
+                <p class="font-semibold">
+                    Trung bình 7 ngày gần nhất: <span class="text-2xl" id="averageValue">0</span> bài/ngày
+                </p>
+            </div>
+        </div>
+
+        <!-- Input Form -->
+        <div class="bg-gray-50 rounded-xl p-6 mb-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Ghi nhận học tập</h2>
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input
+                    type="date"
+                    id="dateInput"
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+                <input
+                    type="number"
+                    id="lessonsInput"
+                    placeholder="Số bài đã học"
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    min="1"
+                />
+                <button
+                    onclick="addRecord()"
+                    class="px-8 py-3 bg-indigo-600 text-white rounded-lg font-semibold hover:bg-indigo-700 transition-colors"
+                >
+                    Thêm
+                </button>
+            </div>
+        </div>
+
+        <!-- History -->
+        <div class="bg-gray-50 rounded-xl p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Lịch sử học tập</h2>
+            <div id="recordsList" class="space-y-2 max-h-96 overflow-y-auto">
+                <p class="text-gray-500 text-center py-8">Chưa có bản ghi nào</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Box -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <h3 class="font-semibold text-gray-800 mb-2">Thông tin:</h3>
+        <ul class="text-sm text-gray-600 space-y-1">
+            <li>• Môn hiện tại: <span id="currentSubjectName">Tiếng Anh</span></li>
+            <li>• Tổng số bài cần học: <span id="totalLessonsInfo">0</span> bài</li>
+            <li>• Deadline: <span id="deadlineInfo">N/A</span></li>
+            <li>• Còn lại: <span id="remainingLessons">0</span> bài</li>
+            <li>• Tỷ lệ hoàn thành: <span id="infoPercent">0</span>%</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    const DEFAULT_END_DATE = '2026-02-01';
+
+    const DEFAULT_SUBJECTS = [
+        { id: 'english', name: 'Tiếng Anh', totalLessons: 400, endDate: DEFAULT_END_DATE },
+        { id: 'aws', name: 'AWS', totalLessons: 100, endDate: DEFAULT_END_DATE },
+        { id: 'ocp', name: 'OCP', totalLessons: 80, endDate: DEFAULT_END_DATE },
+    ];
+
+    let subjects = [];
+    let selectedSubjectId = localStorage.getItem('selectedSubjectId') || null;
+
+    function loadSubjects() {
+        const stored = localStorage.getItem('subjects');
+        if (stored) {
+            try {
+                subjects = JSON.parse(stored);
+            } catch (e) {
+                subjects = [...DEFAULT_SUBJECTS];
+            }
+        } else {
+            subjects = [...DEFAULT_SUBJECTS];
+        }
+
+        if (!subjects || subjects.length === 0) {
+            subjects = [...DEFAULT_SUBJECTS];
+        }
+
+        if (!selectedSubjectId || !subjects.some(s => s.id === selectedSubjectId)) {
+            selectedSubjectId = subjects[0].id;
+            localStorage.setItem('selectedSubjectId', selectedSubjectId);
+        }
+    }
+
+    function saveSubjects() {
+        localStorage.setItem('subjects', JSON.stringify(subjects));
+    }
+
+    function getCurrentSubject() {
+        return subjects.find(s => s.id === selectedSubjectId) || subjects[0];
+    }
+
+    function initSubjectSelect() {
+        const select = document.getElementById('subjectSelect');
+        select.innerHTML = '';
+        subjects.forEach(s => {
+            const option = document.createElement('option');
+            option.value = s.id;
+            option.textContent = s.name;
+            select.appendChild(option);
+        });
+        select.value = selectedSubjectId;
+        select.onchange = (e) => {
+            selectedSubjectId = e.target.value;
+            localStorage.setItem('selectedSubjectId', selectedSubjectId);
+            updateUI();
+        };
+    }
+
+    function renderSubjectsConfig() {
+        const container = document.getElementById('subjectsConfig');
+        if (!subjects || subjects.length === 0) {
+            container.innerHTML = '<p class="text-gray-500 text-sm">Chưa có môn học nào.</p>';
+            return;
+        }
+
+        container.innerHTML = subjects.map(s => `
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center bg-gray-50 border border-gray-200 rounded-lg p-3">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Tên môn</label>
+                    <input
+                        type="text"
+                        value="${s.name}"
+                        onchange="updateSubjectField('${s.id}','name', this.value)"
+                        class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Tổng số bài</label>
+                    <input
+                        type="number"
+                        min="1"
+                        value="${s.totalLessons}"
+                        onchange="updateSubjectField('${s.id}','totalLessons', this.value)"
+                        class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Ngày kết thúc</label>
+                    <input
+                        type="date"
+                        value="${s.endDate || ''}"
+                        onchange="updateSubjectField('${s.id}','endDate', this.value)"
+                        class="w-full px-2 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    />
+                </div>
+                <div class="flex md:justify-end mt-2 md:mt-5">
+                    <button
+                        onclick="deleteSubject('${s.id}')"
+                        class="px-3 py-1.5 text-xs text-red-600 border border-red-200 rounded-lg hover:bg-red-50"
+                    >
+                        Xóa môn
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function addSubject() {
+        const newId = 'sub_' + Date.now();
+        const today = new Date();
+        const defaultEnd = DEFAULT_END_DATE;
+        const newSubject = {
+            id: newId,
+            name: 'Môn mới',
+            totalLessons: 100,
+            endDate: defaultEnd,
+        };
+        subjects.push(newSubject);
+        saveSubjects();
+        selectedSubjectId = newId;
+        localStorage.setItem('selectedSubjectId', selectedSubjectId);
+        initSubjectSelect();
+        renderSubjectsConfig();
+        updateUI();
+    }
+
+    function updateSubjectField(subjectId, field, value) {
+        const idx = subjects.findIndex(s => s.id === subjectId);
+        if (idx === -1) return;
+        if (field === 'totalLessons') {
+            const n = parseInt(value);
+            subjects[idx][field] = isNaN(n) || n <= 0 ? 1 : n;
+        } else if (field === 'name') {
+            subjects[idx][field] = value || 'Môn không tên';
+        } else if (field === 'endDate') {
+            subjects[idx][field] = value;
+        } else {
+            subjects[idx][field] = value;
+        }
+        saveSubjects();
+        initSubjectSelect();
+        renderSubjectsConfig();
+        updateUI();
+    }
+
+    function deleteSubject(subjectId) {
+        if (!confirm('Xóa môn này? Dữ liệu tiến độ của môn cũng sẽ không còn dùng nữa.')) {
+            return;
+        }
+        subjects = subjects.filter(s => s.id !== subjectId);
+        saveSubjects();
+
+        // Xóa luôn record học của môn đó
+        localStorage.removeItem('studyRecords_' + subjectId);
+
+        if (subjects.length === 0) {
+            subjects = [...DEFAULT_SUBJECTS];
+        }
+
+        if (!subjects.some(s => s.id === selectedSubjectId)) {
+            selectedSubjectId = subjects[0].id;
+            localStorage.setItem('selectedSubjectId', selectedSubjectId);
+        }
+
+        initSubjectSelect();
+        renderSubjectsConfig();
+        updateUI();
+    }
+
+    function loadRecords() {
+        const key = 'studyRecords_' + selectedSubjectId;
+        const records = JSON.parse(localStorage.getItem(key) || '[]');
+        return records.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    function saveRecords(records) {
+        const key = 'studyRecords_' + selectedSubjectId;
+        localStorage.setItem(key, JSON.stringify(records));
+    }
+
+    function addRecord() {
+        const date = document.getElementById('dateInput').value;
+        const lessons = parseInt(document.getElementById('lessonsInput').value);
+
+        if (!date || !lessons || lessons <= 0) {
+            alert('Vui lòng nhập đầy đủ thông tin hợp lệ');
+            return;
+        }
+
+        const records = loadRecords();
+        const existingIndex = records.findIndex(r => r.date === date);
+
+        if (existingIndex >= 0) {
+            if (confirm('Ngày này đã có bản ghi. Bạn có muốn cập nhật?')) {
+                records[existingIndex].lessons = lessons;
+            } else {
+                return;
+            }
+        } else {
+            records.push({ date, lessons });
+        }
+
+        saveRecords(records);
+        document.getElementById('lessonsInput').value = '';
+        updateUI();
+        alert('Đã lưu tiến độ học tập!');
+    }
+
+    function deleteRecord(date) {
+        if (confirm('Bạn có chắc muốn xóa bản ghi này?')) {
+            const records = loadRecords().filter(r => r.date !== date);
+            saveRecords(records);
+            updateUI();
+        }
+    }
+
+    function formatDateDisplay(dateStr) {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr || 'N/A';
+        return date.toLocaleDateString('vi-VN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+        });
+    }
+
+    function updateUI() {
+        const currentSubject = getCurrentSubject();
+        const TOTAL_LESSONS = currentSubject.totalLessons || 0;
+        const END_DATE_STR = currentSubject.endDate || '';
+
+        const records = loadRecords();
+        const totalCompleted = records.reduce((sum, r) => sum + r.lessons, 0);
+        const completionPercent = TOTAL_LESSONS > 0
+            ? ((totalCompleted / TOTAL_LESSONS) * 100).toFixed(1)
+            : '0.0';
+        const remainingLessons = Math.max(TOTAL_LESSONS - totalCompleted, 0);
+
+        let daysRemaining = 0;
+        if (END_DATE_STR) {
+            const end = new Date(END_DATE_STR);
+            const today = new Date();
+            if (!isNaN(end.getTime())) {
+                const diffMs = end.getTime() - today.getTime();
+                daysRemaining = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+            }
+        }
+
+        const requiredDaily = (remainingLessons > 0 && daysRemaining > 0)
+            ? (remainingLessons / daysRemaining).toFixed(1)
+            : 0;
+
+        // Statistics
+        document.getElementById('completionPercent').textContent = completionPercent + '%';
+        document.getElementById('completionText').textContent = `${totalCompleted} / ${TOTAL_LESSONS} bài`;
+        document.getElementById('daysRemaining').textContent = daysRemaining > 0 ? daysRemaining : 0;
+        document.getElementById('requiredDaily').textContent = requiredDaily;
+        document.getElementById('remainingLessons').textContent = remainingLessons;
+        document.getElementById('infoPercent').textContent = completionPercent;
+        document.getElementById('totalLessonsInfo').textContent = TOTAL_LESSONS;
+        document.getElementById('currentSubjectName').textContent = currentSubject.name;
+        document.getElementById('deadlineInfo').textContent = END_DATE_STR ? formatDateDisplay(END_DATE_STR) : 'N/A';
+
+        // 7 day average
+        const last7Days = records.slice(0, 7);
+        if (last7Days.length > 0) {
+            const average = (last7Days.reduce((sum, r) => sum + r.lessons, 0) / last7Days.length).toFixed(1);
+            document.getElementById('averageValue').textContent = average;
+            document.getElementById('averageDisplay').classList.remove('hidden');
+        } else {
+            document.getElementById('averageDisplay').classList.add('hidden');
+        }
+
+        // Records list
+        const recordsList = document.getElementById('recordsList');
+        if (records.length === 0) {
+            recordsList.innerHTML = '<p class="text-gray-500 text-center py-8">Chưa có bản ghi nào</p>';
+        } else {
+            recordsList.innerHTML = records.map(record => {
+                const date = new Date(record.date);
+                const day = isNaN(date.getTime()) ? record.date : date.getDate();
+                const month = isNaN(date.getTime()) ? '' : ('Tháng ' + (date.getMonth() + 1));
+                const fullDate = isNaN(date.getTime())
+                    ? record.date
+                    : date.toLocaleDateString('vi-VN', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+
+                return `
+                    <div class="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200 fade-in">
+                        <div class="flex items-center gap-4">
+                            <div class="text-center">
+                                <p class="text-2xl font-bold text-indigo-600">${day}</p>
+                                <p class="text-xs text-gray-500">${month}</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-gray-800">
+                                    ${fullDate}
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    Đã học: <span class="font-semibold text-indigo-600">${record.lessons}</span> bài
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onclick="deleteRecord('${record.date}')"
+                            class="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                            Xóa
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+    }
+
+    (function init() {
+        const dateInput = document.getElementById('dateInput');
+        if (dateInput) {
+            dateInput.valueAsDate = new Date();
+        }
+        loadSubjects();
+        initSubjectSelect();
+        renderSubjectsConfig();
+        updateUI();
+    })();
+</script>
+</body>
+</html>
